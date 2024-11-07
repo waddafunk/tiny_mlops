@@ -1,0 +1,78 @@
+version: '3'
+
+services:
+  nginx:
+    container_name: nginx-proxy
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ../config/nginx:/etc/nginx/conf.d
+      - ../config/nginx/auth/.htpasswd:/etc/nginx/auth/.htpasswd:ro
+    depends_on:
+      - woodpecker-server
+    restart: always
+    networks:
+      - mlops-network
+
+  woodpecker-server:
+    container_name: woodpecker-server
+    image: woodpeckerci/woodpecker-server:latest
+    volumes:
+      - woodpecker-server-data:/var/lib/woodpecker/
+    environment:
+      - WOODPECKER_OPEN=true
+      - WOODPECKER_HOST=${WOODPECKER_HOST}
+      - WOODPECKER_GITHUB=true
+      - WOODPECKER_GITHUB_CLIENT=${WOODPECKER_GITHUB_CLIENT}
+      - WOODPECKER_GITHUB_SECRET=${WOODPECKER_GITHUB_SECRET}
+      - WOODPECKER_ADMIN=${WOODPECKER_ADMIN}
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
+    restart: always
+    networks:
+      - mlops-network
+
+  woodpecker-agent:
+    container_name: woodpecker-agent
+    image: woodpeckerci/woodpecker-agent:latest
+    command: agent
+    restart: always
+    depends_on:
+      - woodpecker-server
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WOODPECKER_SERVER=woodpecker-server:9000
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
+    networks:
+      - mlops-network
+
+  mlflow:
+    container_name: mlflow-server
+    image: ghcr.io/mlflow/mlflow:latest
+    ports:
+      - "127.0.0.1:5000:5000"  # Only accessible locally
+    volumes:
+      - ../mlflow/artifacts:/mlflow/artifacts
+      - ../mlflow/db:/mlflow/db
+    environment:
+      - MLFLOW_TRACKING_URI=sqlite:///mlflow/db/mlflow.db
+      - MLFLOW_ARTIFACT_ROOT=/mlflow/artifacts
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow/db/mlflow.db --default-artifact-root /mlflow/artifacts
+    restart: always
+    networks:
+      - mlops-network
+
+  bore-tunnel:
+    container_name: bore-tunnel
+    image: ekzhang/bore:latest
+    restart: always
+    network_mode: "host"  # Changed back to host mode
+    command: local 80 --to bore.pub
+
+volumes:
+  woodpecker-server-data:
+
+networks:
+  mlops-network:
+    driver: bridge

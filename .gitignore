@@ -1,1 +1,7 @@
 mount_smb_share.sh
+config/nginx/auth/.htpasswd
+mlflow/artifacts/*
+mlflow/db/*
+!mlflow/artifacts/.gitkeep
+!mlflow/db/.gitkeep
+services/.env
