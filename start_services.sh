@@ -50,11 +50,6 @@ WOODPECKER_SESSION_EXPIRES=720h
 WOODPECKER_SERVER_PROXY=true
 WOODPECKER_SERVER_ADDR=:8000
 WOODPECKER_GRPC_ADDR=:9000
-
-# Additional settings for OAuth
-WOODPECKER_GITHUB_SKIP_VERIFY=false
-WOODPECKER_GITHUB_URL=https://github.com
-WOODPECKER_GITHUB_API=https://api.github.com
 EOF
 else
     # Update existing .env with new secrets
