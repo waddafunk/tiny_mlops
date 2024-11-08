@@ -1,40 +1,34 @@
 when:
   - event: [push, pull_request]
 
-clone:
-  git:
-    image: woodpeckerci/plugin-git
-
 steps:
-  - name: setup
+  - name: format-and-lint
     image: debian:bullseye-slim
     commands:
+      # Install all required tools
       - apt-get update
-      - apt-get install -y curl shellcheck shfmt yamllint
+      - apt-get install -y curl shellcheck shfmt yamllint docker-compose
       
-  - name: format-shell
-    image: debian:bullseye-slim
-    commands:
+      # Format and check shell scripts
+      - echo "Formatting shell scripts..."
       - shfmt -l -w -i 4 *.sh
+      - echo "Checking shell scripts..."
       - shellcheck *.sh
-    
-  - name: format-yaml
-    image: debian:bullseye-slim
-    commands:
+      
+      # Format and check YAML files
+      - echo "Checking YAML files..."
       - yamllint -c .yamllint.yml .
       - |
         for file in $(find . -name "*.yml" -o -name "*.yaml"); do
           yamllint -f parsable $file
         done
-
-  - name: check-nginx
-    image: nginx:alpine
-    commands:
-      - nginx -t -c /etc/nginx/nginx.conf
       
-  - name: verify-no-credentials
-    image: debian:bullseye-slim
-    commands:
+      # Validate docker-compose
+      - echo "Validating docker-compose..."
+      - docker-compose -f services/docker-compose.yml config
+      
+      # Security checks
+      - echo "Running security checks..."
       - |
         # Check for hardcoded credentials
         ! grep -r -i "password\|secret\|key" --exclude-dir=.git --exclude="*.enc" .
@@ -42,26 +36,8 @@ steps:
         # Check for private keys
         ! find . -type f -name "*.pem" -o -name "*.key"
 
-  - name: validate-docker-compose
-    image: docker/compose:latest
+  - name: check-nginx
+    image: nginx:alpine
     commands:
-      - docker-compose -f services/docker-compose.yml config
-
-  - name: push_changes
-    image: alpine/git:latest
-    commands:
-      - git config --global user.name "${CI_COMMIT_AUTHOR}"
-      - git config --global user.email "${CI_COMMIT_AUTHOR_EMAIL}"
-      - git remote set-url origin "https://oauth2:$${git_push_token}@github.com/${CI_REPO}.git"
-      - git add --all
-      - |
-        if [ -n "$(git status --porcelain)" ]; then
-          git commit -m "[CI skip] Autocommit, upgrade & format"
-          echo "Pushing changes..."
-          git push origin ${CI_COMMIT_BRANCH}
-        else
-          echo "No changes to commit"
-        fi
-    secrets: [ git_push_token ]
-    when:
-      status: [ success ]
+      - echo "Validating nginx configuration..."
+      - nginx -t -c /etc/nginx/nginx.conf
