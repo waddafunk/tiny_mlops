@@ -78,10 +78,6 @@ echo "Detected bore URL: $BORE_URL"
 echo "Updating .env with bore URL: $BORE_URL"
 sed -i "s#WOODPECKER_HOST=.*#WOODPECKER_HOST=http://$BORE_URL#" services/.env
 
-# Display current env contents
-echo "Current .env contents:"
-cat services/.env
-
 # Ask for GitHub configuration if not set
 if grep -q "WOODPECKER_GITHUB_CLIENT=pending" services/.env; then
     echo """
