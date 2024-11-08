@@ -5,9 +5,13 @@ steps:
   - name: format-and-lint
     image: debian:bullseye-slim
     commands:
-      # Install all required tools
+      # Install required packages
       - apt-get update
-      - apt-get install -y curl shellcheck shfmt yamllint docker-compose
+      - apt-get install -y curl shellcheck yamllint docker-compose wget
+
+      # Install shfmt
+      - wget https://github.com/mvdan/sh/releases/download/v3.7.0/shfmt_v3.7.0_linux_arm64 -O /usr/local/bin/shfmt
+      - chmod +x /usr/local/bin/shfmt
       
       # Format and check shell scripts
       - echo "Formatting shell scripts..."
