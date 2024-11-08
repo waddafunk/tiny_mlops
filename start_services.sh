@@ -18,8 +18,9 @@ get_bore_url() {
     return 1
 }
 
-# Generate a random secret if not already set
+# Generate secrets
 AGENT_SECRET=$(openssl rand -hex 16)
+COOKIE_SECRET=$(openssl rand -hex 32)
 
 # Stop all services
 echo "Stopping existing services..."
@@ -38,10 +39,27 @@ WOODPECKER_GITHUB_SECRET=pending
 WOODPECKER_ADMIN=pending
 WOODPECKER_AGENT_SECRET=$AGENT_SECRET
 WOODPECKER_HOST=http://pending.bore.pub
+
+# Authentication settings
+WOODPECKER_COOKIE_SECRET=$COOKIE_SECRET
+WOODPECKER_COOKIE_SECURE=false
+WOODPECKER_COOKIE_TIMEOUT=720h
+WOODPECKER_SESSION_EXPIRES=720h
+
+# Server settings
+WOODPECKER_SERVER_PROXY=true
+WOODPECKER_SERVER_ADDR=:8000
+WOODPECKER_GRPC_ADDR=:9000
+
+# Additional settings for OAuth
+WOODPECKER_GITHUB_SKIP_VERIFY=false
+WOODPECKER_GITHUB_URL=https://github.com
+WOODPECKER_GITHUB_API=https://api.github.com
 EOF
 else
-    # Update existing .env with new agent secret
+    # Update existing .env with new secrets
     sed -i "s/WOODPECKER_AGENT_SECRET=.*/WOODPECKER_AGENT_SECRET=$AGENT_SECRET/" services/.env
+    sed -i "s/WOODPECKER_COOKIE_SECRET=.*/WOODPECKER_COOKIE_SECRET=$COOKIE_SECRET/" services/.env
 fi
 
 # Start only bore tunnel
