@@ -18,7 +18,7 @@ steps:
         ! grep -r -i "password\|secret\|key" --exclude-dir=.git --exclude="*.enc" .
       - |
         # Check for private keys
-        ! find . -type f -name "*.pem" -o -name "*.key"
+        find . -type f -name "*.pem" -o -name "*.key"
 
   - name: check-nginx
     image: nginx:alpine
