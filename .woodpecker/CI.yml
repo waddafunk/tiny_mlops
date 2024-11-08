@@ -1,6 +1,10 @@
 when:
   - event: [push, pull_request]
 
+clone:
+  git:
+    image: woodpeckerci/plugin-git
+
 steps:
   - name: format-and-lint
     image: debian:bullseye-slim
@@ -25,3 +29,22 @@ steps:
     commands:
       - echo "Validating nginx configuration..."
       - nginx -t -c /etc/nginx/nginx.conf
+
+  - name: push_changes
+    image: alpine/git:latest
+    commands:
+      - git config --global user.name "${CI_COMMIT_AUTHOR}"
+      - git config --global user.email "${CI_COMMIT_AUTHOR_EMAIL}"
+      - git remote set-url origin "https://oauth2:$${git_push_token}@github.com/${CI_REPO}.git"
+      - git add --all
+      - |
+        if [ -n "$(git status --porcelain)" ]; then
+          git commit -m "[CI skip] Autocommit, upgrade & format"
+          echo "Pushing changes..."
+          git push origin ${CI_COMMIT_BRANCH}
+        else
+          echo "No changes to commit"
+        fi
+    secrets: [ git_push_token ]
+    when:
+      status: [ success ]
