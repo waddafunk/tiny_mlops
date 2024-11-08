@@ -5,31 +5,11 @@ steps:
   - name: format-and-lint
     image: debian:bullseye-slim
     commands:
-      # Install required packages
       - apt-get update
-      - apt-get install -y curl shellcheck yamllint docker-compose wget
-
-      # Install shfmt
-      - wget https://github.com/mvdan/sh/releases/download/v3.7.0/shfmt_v3.7.0_linux_arm64 -O /usr/local/bin/shfmt
-      - chmod +x /usr/local/bin/shfmt
-      
-      # Format and check shell scripts
-      - echo "Formatting shell scripts..."
-      - shfmt -l -w -i 4 *.sh
-      - echo "Checking shell scripts..."
-      - shellcheck *.sh
-      
-      # Format and check YAML files
-      - echo "Checking YAML files..."
-      - yamllint -c .yamllint.yml .
-      - |
-        for file in $(find . -name "*.yml" -o -name "*.yaml"); do
-          yamllint -f parsable $file
-        done
-      
-      # Validate docker-compose
-      - echo "Validating docker-compose..."
-      - docker-compose -f services/docker-compose.yml config
+      - apt-get install build-essential
+      - make install
+      - make format
+      - make lint
       
       # Security checks
       - echo "Running security checks..."

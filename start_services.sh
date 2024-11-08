@@ -6,8 +6,9 @@ get_bore_url() {
     local max_attempts=10
     local attempt=1
     while [ $attempt -le $max_attempts ]; do
-        local url=$(docker logs bore-tunnel 2>&1 | grep "listening at bore.pub:" | tail -n 1 | awk '{print $NF}' | cut -d':' -f2)
-        if [ ! -z "$url" ]; then
+        local url
+        url=$(docker logs bore-tunnel 2>&1 | grep "listening at bore.pub:" | tail -n 1 | awk '{print $NF}' | cut -d':' -f2)
+        if [ -n "$url" ]; then
             echo "$url"
             return 0
         fi
@@ -29,9 +30,9 @@ echo "Stopping existing services..."
 # Setup environment file if it doesn't exist
 if [ ! -f "services/.env" ]; then
     echo "Creating initial .env file..."
-    
+
     # Create services/.env file with all required variables
-    cat > services/.env << EOF
+    cat >services/.env <<EOF
 WOODPECKER_OPEN=true
 WOODPECKER_GITHUB=true
 WOODPECKER_GITHUB_CLIENT=pending
@@ -63,7 +64,7 @@ echo "Starting bore tunnel..."
 
 # Get the bore URL
 echo "Waiting for bore tunnel URL..."
-sleep 2  # Give bore a moment to start
+sleep 2 # Give bore a moment to start
 
 BORE_PORT=$(get_bore_url)
 if [ -z "$BORE_PORT" ]; then
@@ -84,10 +85,10 @@ if grep -q "WOODPECKER_GITHUB_CLIENT=pending" services/.env; then
 Please enter your GitHub OAuth credentials:
 (You can get these from https://github.com/settings/developers)
 """
-    read -p "GitHub OAuth Client ID: " github_client
-    read -p "GitHub OAuth Secret: " github_secret
-    read -p "Your GitHub username: " github_username
-    
+    read -rp "GitHub OAuth Client ID: " github_client
+    read -rp "GitHub OAuth Secret: " github_secret
+    read -rp "Your GitHub username: " github_username
+
     sed -i "s/WOODPECKER_GITHUB_CLIENT=.*/WOODPECKER_GITHUB_CLIENT=$github_client/" services/.env
     sed -i "s/WOODPECKER_GITHUB_SECRET=.*/WOODPECKER_GITHUB_SECRET=$github_secret/" services/.env
     sed -i "s/WOODPECKER_ADMIN=.*/WOODPECKER_ADMIN=$github_username/" services/.env

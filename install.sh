@@ -2,9 +2,9 @@
 set -e
 
 # Check if running as root
-if [ "$EUID" -eq 0 ]; then 
-  echo "Please don't run as root"
-  exit 1
+if [ "$EUID" -eq 0 ]; then
+    echo "Please don't run as root"
+    exit 1
 fi
 
 # Create necessary directories
@@ -23,7 +23,7 @@ sudo apt-get install -y \
 
 # Set up docker permissions
 echo "🐳 Setting up Docker permissions..."
-sudo usermod -aG docker $USER
+sudo usermod -aG docker "$USER"
 sudo systemctl enable docker
 sudo systemctl start docker
 
@@ -32,10 +32,10 @@ echo "🔒 Setting up authentication..."
 if [ ! -f config/nginx/auth/.htpasswd ]; then
     # Generate random password
     PASSWORD=$(openssl rand -base64 12)
-    
+
     # Create htpasswd file
     htpasswd -bc config/nginx/auth/.htpasswd admin "$PASSWORD"
-    
+
     echo "Basic auth credentials:"
     echo "Username: admin"
     echo "Password: $PASSWORD"
@@ -47,13 +47,13 @@ echo "⚙️  Generating environment file..."
 if [ ! -f .env ]; then
     # Generate random string for agent secret
     AGENT_SECRET=$(openssl rand -hex 16)
-    
+
     # Create .env file from template
     cp .env.example .env
-    
+
     # Update agent secret
     sed -i "s/WOODPECKER_AGENT_SECRET=.*/WOODPECKER_AGENT_SECRET=$AGENT_SECRET/" .env
-    
+
     echo "⚠️  Please update .env file with your GitHub OAuth credentials"
 fi
 
@@ -88,6 +88,6 @@ Run: scripts/setup_auth.sh
 """
 
 # Check if reboot is needed for group changes
-if ! groups $USER | grep -q docker; then
+if ! groups "$USER" | grep -q docker; then
     echo "⚠️  Please log out and log back in for Docker group changes to take effect"
 fi
