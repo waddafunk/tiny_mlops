@@ -269,4 +269,6 @@ Contributions are welcome! Please submit pull requests for any improvements.
 
 ## License
 
-[Add your license information here]
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
