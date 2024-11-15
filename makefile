@@ -28,4 +28,4 @@ lint:
 	find . -name "*.yml" -o -name "*.yaml" -exec yamllint -f parsable {} \;
 	
 	@echo "Validating docker-compose..."
-	docker-compose -f services/docker-compose.yml config
+	docker-compose -f services/docker-compose.yml config 2>&1 | grep -v "variable is not set. Defaulting to a blank string" || exit $?
