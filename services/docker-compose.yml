@@ -81,8 +81,8 @@ services:
     command: local 80 --to bore.pub
 
 volumes:
-  woodpecker-server-data:
+  woodpecker-server-data: {}
 
 networks:
   mlops-network:
-    driver: bridge
+    name: mlops-network
