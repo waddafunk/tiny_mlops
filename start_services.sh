@@ -3,7 +3,7 @@ set -e
 
 # Function to get bore URL from logs
 get_bore_url() {
-    local max_attempts=15  # Increased max attempts
+    local max_attempts=15 # Increased max attempts
     local attempt=1
     while [ $attempt -le $max_attempts ]; do
         local url
@@ -13,7 +13,7 @@ get_bore_url() {
             return 0
         fi
         echo "Attempt $attempt: Waiting for bore tunnel URL..."
-        sleep 3  # Increased sleep time
+        sleep 3 # Increased sleep time
         attempt=$((attempt + 1))
     done
     return 1
@@ -24,7 +24,7 @@ wait_for_service() {
     local service=$1
     local max_attempts=20
     local attempt=1
-    
+
     echo "Waiting for $service to be healthy..."
     while [ $attempt -le $max_attempts ]; do
         if docker-compose -f "$SERVICES_DIR/docker-compose.yml" ps | grep "$service" | grep -q "Up"; then
@@ -55,7 +55,7 @@ echo "Stopping existing services..."
 # Setup environment file if it doesn't exist
 if [ ! -f "$ENV_FILE" ]; then
     echo "Creating initial .env file..."
-    
+
     # Create .env file with all required variables
     cat >"$ENV_FILE" <<EOF
 WOODPECKER_OPEN=true
@@ -95,7 +95,7 @@ echo "Starting bore tunnel..."
 
 # Get the bore URL
 echo "Waiting for bore tunnel URL..."
-sleep 3  # Give bore a moment to start
+sleep 3 # Give bore a moment to start
 
 BORE_PORT=$(get_bore_url)
 if [ -z "$BORE_PORT" ]; then
@@ -119,7 +119,7 @@ Please enter your GitHub OAuth credentials:
     read -rp "GitHub OAuth Client ID: " github_client
     read -rp "GitHub OAuth Secret: " github_secret
     read -rp "Your GitHub username: " github_username
-    
+
     sed -i "s/WOODPECKER_GITHUB_CLIENT=.*/WOODPECKER_GITHUB_CLIENT=$github_client/" "$ENV_FILE"
     sed -i "s/WOODPECKER_GITHUB_SECRET=.*/WOODPECKER_GITHUB_SECRET=$github_secret/" "$ENV_FILE"
     sed -i "s/WOODPECKER_ADMIN=.*/WOODPECKER_ADMIN=$github_username/" "$ENV_FILE"
