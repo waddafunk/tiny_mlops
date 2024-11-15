@@ -5,3 +5,4 @@ mlflow/db/*
 !mlflow/artifacts/.gitkeep
 !mlflow/db/.gitkeep
 services/.env
+config.ini

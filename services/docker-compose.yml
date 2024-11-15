@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   nginx:
     container_name: nginx-proxy
@@ -18,6 +16,9 @@ services:
   woodpecker-server:
     container_name: woodpecker-server
     image: woodpeckerci/woodpecker-server:latest
+    ports:
+      - "8000:8000"
+      - "9000:9000"
     volumes:
       - woodpecker-server-data:/var/lib/woodpecker/
     environment:
@@ -29,6 +30,9 @@ services:
       - WOODPECKER_ADMIN=${WOODPECKER_ADMIN}
       - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
       - WOODPECKER_GITHUB_SCOPE=${WOODPECKER_GITHUB_SCOPE}
+      - WOODPECKER_SERVER_ADDR=:8000
+      - WOODPECKER_GRPC_ADDR=:9000
+      - WOODPECKER_LOG_LEVEL=debug
     restart: always
     networks:
       - mlops-network
@@ -45,6 +49,11 @@ services:
     environment:
       - WOODPECKER_SERVER=woodpecker-server:9000
       - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
+      - WOODPECKER_GRPC_SECURE=false
+      - WOODPECKER_BACKEND=docker
+      - WOODPECKER_MAX_WORKFLOWS=1
+      - WOODPECKER_LOG_LEVEL=debug
+      - DOCKER_API_VERSION=1.41
     networks:
       - mlops-network
 
@@ -52,7 +61,7 @@ services:
     container_name: mlflow-server
     image: ghcr.io/mlflow/mlflow:latest
     ports:
-      - "127.0.0.1:5000:5000"  # Only accessible locally
+      - "127.0.0.1:5000:5000"
     volumes:
       - ../mlflow/artifacts:/mlflow/artifacts
       - ../mlflow/db:/mlflow/db
@@ -68,7 +77,7 @@ services:
     container_name: bore-tunnel
     image: ekzhang/bore:latest
     restart: always
-    network_mode: "host"  # Changed back to host mode
+    network_mode: "host"
     command: local 80 --to bore.pub
 
 volumes:
